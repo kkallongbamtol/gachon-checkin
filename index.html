@@ -1304,6 +1304,7 @@
     <div class="admin-controls">
       <span class="admin-update-text" id="admin-update-text"></span>
       <button class="btn ghost" style="width:auto; padding: 8px 14px; font-size: 13px;" onclick="refreshAdmin()">새로고침</button>
+      <button class="btn gold" style="width:auto; padding: 8px 14px; font-size: 13px;" onclick="openPrintMode()" title="QR 카드 출력 화면을 새 탭에서 엽니다">🖨 QR 카드 출력</button>
       <button class="sound-toggle" id="sound-toggle" onclick="toggleSound()" title="알림 소리 토글">🔔</button>
     </div>
 
@@ -1619,7 +1620,7 @@
 /* ============================================================
    설정: Apps Script 웹앱 URL을 여기에 붙여넣으세요
    ============================================================ */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9smMGtk-aIomrp3RGGIZ_JqCVOxAef_i4mFCYW51-3y-seeYxnaCKYBFyJUt4oDyqDA/exec';
+const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 /* ============================================================ */
 
 // 운영 기간 (HTML 표시용 - Apps Script와 일치 권장)
@@ -2846,6 +2847,12 @@ function refreshAdmin() {
 function toggleSound() {
   state.soundEnabled = !state.soundEnabled;
   document.getElementById('sound-toggle').textContent = state.soundEnabled ? '🔔' : '🔕';
+}
+
+// QR 카드 출력 화면을 새 탭에서 열기
+function openPrintMode() {
+  const url = location.origin + location.pathname + '#print';
+  window.open(url, '_blank');
 }
 
 
