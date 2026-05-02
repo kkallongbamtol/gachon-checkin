@@ -1,0 +1,2951 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>가천대 출입체크</title>
+<style>
+  /* ============ 폰트 & 변수 ============ */
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --gachon-navy: #002855;
+    --gachon-navy-deep: #001838;
+    --gachon-blue: #0a3d8a;
+    --gachon-gold: #c9a961;
+    --gachon-gold-light: #e5c98a;
+    --bg: #f5f1ea;
+    --bg-card: #ffffff;
+    --ink: #1a1a1a;
+    --ink-soft: #555;
+    --ink-mute: #888;
+    --line: #e3ddd2;
+    --error: #c0392b;
+    --success: #1e7e34;
+    --warn: #d97706;
+    --auto-close: #fbbf24;
+    --short-stay: #f97316;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    font-family: 'IBM Plex Sans KR', -apple-system, sans-serif;
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  body {
+    background:
+      radial-gradient(ellipse at top right, rgba(201, 169, 97, 0.08), transparent 60%),
+      radial-gradient(ellipse at bottom left, rgba(0, 40, 85, 0.05), transparent 60%),
+      var(--bg);
+  }
+
+  /* ============ 공통 레이아웃 ============ */
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+    min-height: 100vh;
+  }
+  .app.admin { max-width: 1200px; }
+  .app.scan { max-width: 100%; padding: 0; }
+  .app.print { max-width: 100%; padding: 0; }
+
+  /* ============ 헤더 ============ */
+  .header {
+    padding: 32px 0 28px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .header-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Gowun Batang', serif;
+    font-size: 13px;
+    color: var(--gachon-navy);
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .header-mark::before {
+    content: '';
+    width: 24px; height: 1px;
+    background: var(--gachon-gold);
+  }
+  .header-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gachon-navy-deep);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+  .header-sub {
+    font-size: 13px;
+    color: var(--ink-mute);
+    margin-top: 8px;
+    letter-spacing: 0.02em;
+  }
+
+  /* ============ 카드 ============ */
+  .card {
+    background: var(--bg-card);
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    padding: 28px 24px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .card-corner {
+    position: absolute;
+    top: -1px; right: -1px;
+    width: 24px; height: 24px;
+    border-top: 2px solid var(--gachon-gold);
+    border-right: 2px solid var(--gachon-gold);
+  }
+
+  .step-label {
+    font-family: 'Gowun Batang', serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    color: var(--gachon-gold);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .step-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gachon-navy-deep);
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .step-desc {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+    line-height: 1.55;
+  }
+
+  /* ============ 입력 ============ */
+  .field { margin-bottom: 18px; }
+  .field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .field-label .req { color: var(--error); margin-left: 2px; }
+
+  .input, .select {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid var(--line);
+    border-radius: 3px;
+    font-size: 16px;
+    font-family: inherit;
+    background: var(--bg-card);
+    color: var(--ink);
+    transition: all 0.15s ease;
+    -webkit-appearance: none;
+  }
+  .input:focus, .select:focus {
+    outline: none;
+    border-color: var(--gachon-navy);
+    box-shadow: 0 0 0 3px rgba(0, 40, 85, 0.08);
+  }
+  .input.large {
+    font-size: 22px;
+    text-align: center;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    padding: 18px;
+  }
+
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: var(--gachon-navy);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--gachon-navy-deep); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn.gold { background: var(--gachon-gold); color: var(--gachon-navy-deep); }
+  .btn.gold:hover { background: var(--gachon-gold-light); }
+  .btn.ghost {
+    background: transparent;
+    color: var(--gachon-navy);
+    border: 1.5px solid var(--gachon-navy);
+  }
+  .btn.ghost:hover { background: var(--gachon-navy); color: white; }
+  .btn.danger { background: var(--error); }
+  .btn-row { display: flex; gap: 8px; }
+  .btn-row .btn { flex: 1; }
+
+  /* ============ 알림 ============ */
+  .alert {
+    padding: 12px 14px;
+    border-radius: 3px;
+    font-size: 13.5px;
+    margin-bottom: 16px;
+    border-left: 3px solid;
+    line-height: 1.5;
+  }
+  .alert.error {
+    background: #fff0ee;
+    border-color: var(--error);
+    color: #8b1c12;
+  }
+  .alert.warn {
+    background: #fff8e6;
+    border-color: var(--warn);
+    color: #7a4a00;
+  }
+  .alert.info {
+    background: #f0f4f9;
+    border-color: var(--gachon-navy);
+    color: var(--gachon-navy-deep);
+  }
+
+  /* ============ 결과 화면 (참석자 셀프 입력 fallback용) ============ */
+  .result {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .result-tag {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    margin-bottom: 24px;
+  }
+  .result-name {
+    font-family: 'Gowun Batang', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--gachon-navy-deep);
+    margin-bottom: 6px;
+  }
+  .result-sub { font-size: 14px; color: var(--ink-soft); margin-bottom: 24px; }
+  .result-info {
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 16px 0;
+    margin: 24px 0;
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    font-size: 13px;
+  }
+  .result-info-label { color: var(--ink-mute); margin-bottom: 2px; font-size: 11px; letter-spacing: 0.1em; }
+  .result-info-value { font-weight: 600; }
+
+  /* ============ 푸터 ============ */
+  .footer {
+    text-align: center;
+    margin-top: 48px;
+    padding-top: 24px;
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.1em;
+    border-top: 1px solid var(--line);
+  }
+
+  /* ============ 모드 전환 링크 ============ */
+  .mode-switch {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 50;
+  }
+  .mode-switch a {
+    display: inline-block;
+    padding: 8px 14px;
+    background: var(--gachon-navy-deep);
+    color: white;
+    text-decoration: none;
+    border-radius: 2px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+  }
+  .mode-switch a:hover { opacity: 1; }
+
+  /* ============ 페이드인 ============ */
+  .fade-in { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ================================================================ */
+  /* iPad 스캔 화면 (#scan) — 풀스크린, 카메라 상시 켜짐               */
+  /* ================================================================ */
+  body.mode-scan {
+    background: #000 !important;
+    overflow: hidden;
+  }
+  body.mode-scan .header,
+  body.mode-scan .footer,
+  body.mode-scan .mode-switch { display: none; }
+
+  .scan-wrap {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    color: white;
+    display: flex;
+    flex-direction: column;
+  }
+  .scan-top {
+    flex-shrink: 0;
+    padding: 14px 20px;
+    background: var(--gachon-navy-deep);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+  }
+  .scan-top-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 16px;
+    letter-spacing: 0.05em;
+  }
+  .scan-top-info {
+    font-size: 13px;
+    opacity: 0.85;
+    font-variant-numeric: tabular-nums;
+  }
+  .scan-top-info b {
+    color: var(--gachon-gold);
+    font-size: 16px;
+    margin-left: 4px;
+  }
+  .scan-camera {
+    flex: 1;
+    position: relative;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  #qr-reader {
+    width: 100%;
+    height: 100%;
+  }
+  #qr-reader video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  /* html5-qrcode가 자체 UI(파일 업로드, 카메라 선택 등) 추가하는 걸 숨김 */
+  #qr-reader__dashboard,
+  #qr-reader__dashboard_section,
+  #qr-reader__filescan_input,
+  #qr-reader__camera_selection,
+  #qr-reader__status_span,
+  #qr-reader__header_message {
+    display: none !important;
+  }
+  #qr-reader__scan_region {
+    background: transparent !important;
+  }
+  #qr-reader__scan_region img {
+    display: none !important;
+  }
+
+  .scan-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .scan-overlay-frame {
+    width: 65%;
+    aspect-ratio: 1;
+    max-width: 380px;
+    max-height: 380px;
+    border: 3px solid rgba(255,255,255,0.5);
+    border-radius: 16px;
+    position: relative;
+  }
+  .scan-overlay-corner {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border: 4px solid var(--gachon-gold);
+  }
+  .scan-overlay-corner.tl { top: -3px; left: -3px; border-right: none; border-bottom: none; border-radius: 16px 0 0 0; }
+  .scan-overlay-corner.tr { top: -3px; right: -3px; border-left: none; border-bottom: none; border-radius: 0 16px 0 0; }
+  .scan-overlay-corner.bl { bottom: -3px; left: -3px; border-right: none; border-top: none; border-radius: 0 0 0 16px; }
+  .scan-overlay-corner.br { bottom: -3px; right: -3px; border-left: none; border-top: none; border-radius: 0 0 16px 0; }
+
+  .scan-bottom {
+    flex-shrink: 0;
+    padding: 16px 20px;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .scan-bottom-text {
+    flex: 1;
+    color: white;
+    font-size: 14px;
+    opacity: 0.85;
+  }
+  .scan-bottom-btn {
+    padding: 10px 20px;
+    background: var(--gachon-gold);
+    color: var(--gachon-navy-deep);
+    border: none;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+  }
+
+  /* 풀스크린 결과 오버레이 (3초) */
+  .scan-result-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .scan-result-overlay.show { display: flex; animation: fadeIn 0.2s ease; }
+  .scan-result-overlay.bg-in { background: var(--success); }
+  .scan-result-overlay.bg-out { background: var(--gachon-navy); }
+  .scan-result-overlay.bg-first { background: var(--gachon-gold); color: var(--gachon-navy-deep); }
+  .scan-result-overlay.bg-error { background: var(--error); }
+  .scan-result-overlay.bg-debounce { background: #6b7280; }
+
+  .scan-result-icon {
+    font-family: 'Gowun Batang', serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.4em;
+    padding: 12px 32px;
+    border: 3px solid currentColor;
+    border-radius: 4px;
+    margin-bottom: 32px;
+  }
+  .scan-result-name {
+    font-family: 'Gowun Batang', serif;
+    font-size: 64px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .scan-result-sub {
+    font-size: 20px;
+    opacity: 0.9;
+    margin-bottom: 40px;
+  }
+  .scan-result-time {
+    font-family: 'Gowun Batang', serif;
+    font-size: 36px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 16px;
+  }
+  .scan-result-stay {
+    font-size: 18px;
+    opacity: 0.95;
+    border-top: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    padding: 14px 24px;
+    display: inline-block;
+  }
+  .scan-result-extra {
+    margin-top: 28px;
+    font-size: 16px;
+    opacity: 0.95;
+  }
+
+  /* 번호 입력 모달 (스캔 화면용 fallback) */
+  .scan-modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .scan-modal-bg.show { display: flex; }
+  .scan-modal {
+    background: white;
+    border-radius: 6px;
+    padding: 28px;
+    max-width: 420px;
+    width: 100%;
+  }
+  .scan-modal h3 {
+    font-family: 'Gowun Batang', serif;
+    font-size: 20px;
+    color: var(--gachon-navy-deep);
+    margin-bottom: 8px;
+  }
+  .scan-modal p {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+  }
+
+  /* ================================================================ */
+  /* 관리자 페이지 (#admin)                                            */
+  /* ================================================================ */
+  .admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 20px 22px;
+    border-radius: 3px;
+    position: relative;
+  }
+  .stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--gachon-navy);
+  }
+  .stat.gold::before { background: var(--gachon-gold); }
+  .stat.warn::before { background: var(--auto-close); }
+  .stat.deep::before { background: var(--gachon-navy-deep); }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-mute);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-family: 'Gowun Batang', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--gachon-navy-deep);
+    line-height: 1;
+  }
+  .stat-sub {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+  }
+
+  /* 영역 2 — 누적 통계 (접기/펼치기) */
+  .accordion {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .accordion-head {
+    padding: 16px 22px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fafaf6;
+    user-select: none;
+  }
+  .accordion-head:hover { background: #f5f1e6; }
+  .accordion-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 16px;
+    color: var(--gachon-navy-deep);
+  }
+  .accordion-arrow {
+    transition: transform 0.2s;
+    color: var(--ink-mute);
+  }
+  .accordion.open .accordion-arrow { transform: rotate(180deg); }
+  .accordion-body {
+    display: none;
+    padding: 22px;
+  }
+  .accordion.open .accordion-body { display: block; }
+
+  /* 첫 출석자 사이드 카드 */
+  .admin-layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 16px;
+  }
+  .admin-main {}
+  .admin-side {}
+  .first-list-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 18px;
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
+  .first-list-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 14px;
+    color: var(--gachon-navy-deep);
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .first-list-empty {
+    font-size: 12px;
+    color: var(--ink-mute);
+    padding: 20px 0;
+    text-align: center;
+  }
+  .first-list-item {
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--line);
+    font-size: 13px;
+  }
+  .first-list-item:last-child { border-bottom: none; }
+  .first-list-name {
+    font-weight: 700;
+    color: var(--gachon-navy-deep);
+  }
+  .first-list-meta {
+    font-size: 11px;
+    color: var(--ink-mute);
+    margin-top: 2px;
+  }
+
+  /* 우상단 컨트롤바 */
+  .admin-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .sound-toggle {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    width: 38px;
+    height: 38px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 18px;
+  }
+  .sound-toggle:hover { background: #fafaf6; }
+  .admin-update-text {
+    flex: 1;
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+  }
+
+  /* 탭 */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--line);
+    margin-bottom: 16px;
+  }
+  .tab {
+    padding: 10px 18px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-mute);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+  }
+  .tab.active {
+    color: var(--gachon-navy);
+    border-bottom-color: var(--gachon-navy);
+  }
+
+  /* 테이블 */
+  .table-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .table-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .table-head h2 {
+    font-family: 'Gowun Batang', serif;
+    font-size: 16px;
+    color: var(--gachon-navy-deep);
+  }
+  .table-head .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .table-head .actions .btn { padding: 8px 14px; width: auto; font-size: 13px; }
+  .search-input {
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    font-size: 13px;
+    width: 200px;
+    font-family: inherit;
+  }
+  .filter-select {
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: inherit;
+    background: white;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table th {
+    background: #fafaf6;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f0ece3;
+    vertical-align: middle;
+  }
+  .data-table tr:hover td { background: #faf8f3; }
+  .data-table tr.row-autoclose td { background: #fef9c3; }
+  .data-table tr.row-autoclose:hover td { background: #fde68a; }
+  .data-table tr.row-shortstay td { background: #ffedd5; }
+  .data-table tr.row-outonly td { background: #fed7aa; }
+  .data-table tr.row-inactive td { color: var(--ink-mute); background: #f5f5f5; }
+
+  .tag-in { background: var(--success); color: white; padding: 2px 8px; border-radius: 2px; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; }
+  .tag-out { background: var(--gachon-navy); color: white; padding: 2px 8px; border-radius: 2px; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; }
+  .tag-normal { background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 2px; font-size: 10px; font-weight: 700; }
+  .tag-autoclose { background: var(--auto-close); color: var(--gachon-navy-deep); padding: 2px 8px; border-radius: 2px; font-size: 10px; font-weight: 700; }
+  .tag-outonly { background: var(--short-stay); color: white; padding: 2px 8px; border-radius: 2px; font-size: 10px; font-weight: 700; }
+  .tag-omit { background: #9ca3af; color: white; padding: 2px 8px; border-radius: 2px; font-size: 10px; font-weight: 700; }
+  .tag-active { background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 2px; font-size: 10px; font-weight: 700; }
+  .tag-inactive { background: #f3f4f6; color: var(--ink-mute); padding: 2px 8px; border-radius: 2px; font-size: 10px; font-weight: 700; }
+
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    padding: 4px 10px;
+    border-radius: 2px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    margin-right: 2px;
+  }
+  .icon-btn:hover { background: var(--gachon-navy); color: white; border-color: var(--gachon-navy); }
+  .icon-btn.danger { color: var(--error); border-color: #f0c4c0; }
+  .icon-btn.danger:hover { background: var(--error); color: white; border-color: var(--error); }
+
+  /* 차트 */
+  .chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 18px 22px;
+    margin-bottom: 16px;
+  }
+  .chart-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .chart-card-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 16px;
+    color: var(--gachon-navy-deep);
+  }
+  .chart-card-meta {
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+  }
+  .chart-svg-wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+  .chart-svg {
+    display: block;
+    width: 100%;
+    min-width: 400px;
+    height: 200px;
+  }
+  .chart-svg .grid-line {
+    stroke: #f0ece3;
+    stroke-width: 1;
+  }
+  .chart-svg .axis-line {
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+  .chart-svg .axis-text {
+    fill: var(--ink-mute);
+    font-size: 10px;
+  }
+  .chart-svg .line-in {
+    fill: none;
+    stroke: var(--success);
+    stroke-width: 2;
+  }
+  .chart-svg .line-out {
+    fill: none;
+    stroke: var(--gachon-navy);
+    stroke-width: 2;
+  }
+  .chart-svg .line-inside {
+    fill: none;
+    stroke: var(--gachon-gold);
+    stroke-width: 2.5;
+  }
+  .chart-svg .area-inside {
+    fill: var(--gachon-gold);
+    opacity: 0.1;
+  }
+  .chart-svg .bar-attendance {
+    fill: var(--gachon-navy);
+  }
+  .chart-svg .bar-attendance:hover {
+    fill: var(--gachon-blue);
+  }
+  .chart-legend {
+    display: flex;
+    gap: 18px;
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--ink-soft);
+    flex-wrap: wrap;
+  }
+  .chart-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chart-legend-swatch {
+    display: inline-block;
+    width: 16px;
+    height: 2.5px;
+  }
+  .chart-empty {
+    text-align: center;
+    padding: 30px;
+    color: var(--ink-mute);
+    font-size: 13px;
+  }
+
+  /* 랭킹 테이블 */
+  .ranking-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .ranking-item {
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    font-size: 13px;
+  }
+  .ranking-item.zero {
+    background: #fef2f2;
+    border-color: #fecaca;
+  }
+  .ranking-item-name {
+    font-weight: 600;
+    color: var(--gachon-navy-deep);
+  }
+  .ranking-item-affil {
+    font-size: 11px;
+    color: var(--ink-mute);
+    margin-top: 2px;
+  }
+  .ranking-item-days {
+    font-family: 'Gowun Batang', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gachon-navy);
+  }
+  .ranking-item.zero .ranking-item-days { color: var(--error); }
+
+  /* 모달 */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--bg-card);
+    border-radius: 4px;
+    padding: 28px;
+    max-width: 460px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h3 {
+    font-family: 'Gowun Batang', serif;
+    font-size: 20px;
+    color: var(--gachon-navy-deep);
+    margin-bottom: 20px;
+  }
+  .modal.danger h3 { color: var(--error); }
+
+  /* 첫 출석 알림 모달 (큰 축하용) */
+  .first-modal {
+    background: linear-gradient(135deg, var(--gachon-gold) 0%, var(--gachon-gold-light) 100%);
+    color: var(--gachon-navy-deep);
+    padding: 40px;
+    text-align: center;
+    max-width: 420px;
+  }
+  .first-modal-emoji {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+  .first-modal-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 18px;
+    letter-spacing: 0.2em;
+    margin-bottom: 8px;
+  }
+  .first-modal-name {
+    font-family: 'Gowun Batang', serif;
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .first-modal-affil {
+    font-size: 14px;
+    opacity: 0.85;
+    margin-bottom: 24px;
+  }
+  .first-modal-msg {
+    font-size: 16px;
+    margin-bottom: 24px;
+  }
+  .first-modal .btn {
+    background: var(--gachon-navy-deep);
+    color: white;
+  }
+
+  /* ================================================================ */
+  /* QR 카드 출력 화면 (#print)                                        */
+  /* ================================================================ */
+  .print-wrap {
+    padding: 30px 20px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .print-controls {
+    background: var(--bg-card);
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .print-controls .btn { width: auto; padding: 10px 18px; }
+  .print-info {
+    flex: 1;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  /* A4 페이지 (인쇄용) */
+  .print-page {
+    width: 210mm;
+    min-height: 297mm;
+    background: white;
+    margin: 0 auto 20px;
+    padding: 14mm 13mm;
+    page-break-after: always;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 4mm;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
+
+  /* QR 카드 (90×130mm) */
+  .qr-card {
+    width: 90mm;
+    height: 130mm;
+    border: 1px solid #d4cebd;
+    padding: 6mm 5mm;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    position: relative;
+    page-break-inside: avoid;
+  }
+  .qr-card-header {
+    text-align: center;
+    margin-bottom: 4mm;
+    padding-bottom: 3mm;
+    border-bottom: 1.5px solid var(--gachon-navy);
+  }
+  .qr-card-mark {
+    font-family: 'Gowun Batang', serif;
+    font-size: 8pt;
+    color: var(--gachon-navy);
+    letter-spacing: 0.15em;
+    margin-bottom: 2mm;
+  }
+  .qr-card-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 11pt;
+    color: var(--gachon-navy-deep);
+    font-weight: 700;
+  }
+  .qr-card-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 3mm;
+  }
+  .qr-card-qr {
+    width: 50mm;
+    height: 50mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .qr-card-qr img,
+  .qr-card-qr canvas,
+  .qr-card-qr svg {
+    width: 100%;
+    height: 100%;
+  }
+  .qr-card-id {
+    font-family: 'Gowun Batang', serif;
+    font-size: 14pt;
+    font-weight: 700;
+    color: var(--gachon-gold);
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    letter-spacing: 0.3em;
+  }
+  .qr-card-info {
+    text-align: center;
+    margin-top: 4mm;
+    padding-top: 3mm;
+    border-top: 1px solid #e3ddd2;
+  }
+  .qr-card-name {
+    font-family: 'Gowun Batang', serif;
+    font-size: 16pt;
+    font-weight: 700;
+    color: var(--gachon-navy-deep);
+    margin-bottom: 2mm;
+    letter-spacing: 0.1em;
+  }
+  .qr-card-affil {
+    font-size: 9pt;
+    color: var(--ink-soft);
+    margin-bottom: 2mm;
+  }
+  .qr-card-period {
+    font-size: 8pt;
+    color: var(--ink-mute);
+    letter-spacing: 0.1em;
+  }
+  .qr-card-footer {
+    margin-top: 3mm;
+    padding-top: 3mm;
+    border-top: 1px dashed #e3ddd2;
+    font-size: 8pt;
+    text-align: center;
+    color: var(--ink-mute);
+  }
+
+  /* 인쇄 시 미리보기 그림자 제거 */
+  @media print {
+    body { background: white !important; }
+    .print-controls,
+    .header,
+    .footer,
+    .mode-switch { display: none !important; }
+    .print-page {
+      box-shadow: none;
+      margin: 0;
+      page-break-after: always;
+    }
+  }
+
+  /* 반응형 */
+  @media (max-width: 900px) {
+    .admin-layout { grid-template-columns: 1fr; }
+    .first-list-card { position: static; max-height: none; }
+  }
+  @media (max-width: 600px) {
+    .header-title { font-size: 24px; }
+    .stat-value { font-size: 28px; }
+    .data-table { font-size: 12px; }
+    .data-table th, .data-table td { padding: 6px 8px; }
+    .search-input { width: 100%; }
+    .scan-result-name { font-size: 42px; }
+    .scan-result-time { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== 참석자 셀프 입력 (#) ===================== -->
+<div class="app" id="app-attendee">
+  <header class="header">
+    <div class="header-mark">GACHON UNIVERSITY · ADMISSIONS</div>
+    <h1 class="header-title">출입 체크</h1>
+    <p class="header-sub">QR 카드를 가져오지 않으셨나요? 휴대폰 번호로 체크하세요.</p>
+  </header>
+
+  <!-- STEP 1: 번호 입력 -->
+  <section class="card fade-in" id="step-att-phone">
+    <div class="card-corner"></div>
+    <div class="step-label">STEP 01</div>
+    <h2 class="step-title">본인 확인</h2>
+    <p class="step-desc">등록 시 입력하신 휴대폰 번호 11자리를 입력해 주세요.</p>
+
+    <div id="alert-att-phone"></div>
+
+    <div class="field">
+      <label class="field-label">휴대폰 번호 <span class="req">*</span></label>
+      <input type="tel" class="input large" id="att-input-phone"
+             placeholder="01012345678"
+             inputmode="numeric"
+             maxlength="13"
+             autocomplete="tel">
+    </div>
+
+    <button class="btn" id="btn-att-search" onclick="attSearch()">조회하기</button>
+  </section>
+
+  <!-- STEP 2: 결과 -->
+  <section class="card fade-in" id="step-att-result" style="display:none;">
+    <div class="card-corner"></div>
+    <div class="result">
+      <div class="result-tag" id="att-result-tag"></div>
+      <div class="result-name" id="att-result-name"></div>
+      <div class="result-sub" id="att-result-sub"></div>
+      <div class="result-info">
+        <div>
+          <div class="result-info-label">시각</div>
+          <div class="result-info-value" id="att-result-time"></div>
+        </div>
+        <div id="att-result-stay-wrap" style="display:none;">
+          <div class="result-info-label">체류</div>
+          <div class="result-info-value" id="att-result-stay"></div>
+        </div>
+      </div>
+      <button class="btn ghost" onclick="attReset()">다시 시작</button>
+    </div>
+  </section>
+
+  <footer class="footer">
+    GACHON UNIVERSITY · OFFICE OF ADMISSIONS
+  </footer>
+</div>
+
+
+<!-- ===================== iPad 스캔 화면 (#scan) ===================== -->
+<div class="scan-wrap" id="app-scan" style="display:none;">
+  <div class="scan-top">
+    <div class="scan-top-title">가천대 출입체크</div>
+    <div class="scan-top-info">
+      <span id="scan-date"></span> ·
+      오늘 체크<b id="scan-today-count">0</b>
+    </div>
+  </div>
+
+  <div class="scan-camera">
+    <div id="qr-reader"></div>
+    <div class="scan-overlay">
+      <div class="scan-overlay-frame">
+        <div class="scan-overlay-corner tl"></div>
+        <div class="scan-overlay-corner tr"></div>
+        <div class="scan-overlay-corner bl"></div>
+        <div class="scan-overlay-corner br"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scan-bottom">
+    <div class="scan-bottom-text">QR 카드를 카메라에 보여주세요</div>
+    <button class="scan-bottom-btn" onclick="openPhoneInput()">번호 입력</button>
+  </div>
+</div>
+
+<!-- 풀스크린 결과 오버레이 -->
+<div class="scan-result-overlay" id="scan-result">
+  <div class="scan-result-icon" id="scan-result-icon">입장</div>
+  <div class="scan-result-name" id="scan-result-name">홍길동</div>
+  <div class="scan-result-sub" id="scan-result-sub">가천고등학교</div>
+  <div class="scan-result-time" id="scan-result-time">09:30:12</div>
+  <div class="scan-result-stay" id="scan-result-stay" style="display:none;">체류 2시간 45분</div>
+  <div class="scan-result-extra" id="scan-result-extra"></div>
+</div>
+
+<!-- 번호 입력 모달 (스캔 화면용) -->
+<div class="scan-modal-bg" id="scan-modal-phone">
+  <div class="scan-modal">
+    <h3>번호 입력</h3>
+    <p>QR 카드를 가져오지 않은 참가자는 11자리 휴대폰 번호로 체크할 수 있습니다.</p>
+    <div id="alert-scan-phone"></div>
+    <div class="field">
+      <input type="tel" class="input large" id="scan-input-phone"
+             placeholder="01012345678" inputmode="numeric" maxlength="13">
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closePhoneInput()">취소</button>
+      <button class="btn" onclick="submitPhoneScan()">체크</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===================== 관리자 페이지 (#admin) ===================== -->
+<div class="app admin" id="app-admin" style="display:none;">
+  <header class="header">
+    <div class="header-mark">ADMIN · 관리자 화면</div>
+    <h1 class="header-title">출입 현황</h1>
+    <p class="header-sub" id="admin-sub">실시간 모니터링</p>
+  </header>
+
+  <!-- 비밀번호 입력 -->
+  <section class="card" id="admin-login">
+    <div class="step-label">관리자 인증</div>
+    <h2 class="step-title">비밀번호 입력</h2>
+    <p class="step-desc">관리자 비밀번호를 입력하세요.</p>
+
+    <div id="alert-admin-login"></div>
+
+    <div class="field">
+      <input type="password" class="input" id="admin-pw" placeholder="비밀번호" onkeypress="if(event.key==='Enter')adminLogin()">
+    </div>
+
+    <button class="btn" onclick="adminLogin()">접속</button>
+  </section>
+
+  <!-- 관리자 콘텐츠 -->
+  <div id="admin-content" style="display:none;">
+    <!-- 컨트롤바 -->
+    <div class="admin-controls">
+      <span class="admin-update-text" id="admin-update-text"></span>
+      <button class="btn ghost" style="width:auto; padding: 8px 14px; font-size: 13px;" onclick="refreshAdmin()">새로고침</button>
+      <button class="sound-toggle" id="sound-toggle" onclick="toggleSound()" title="알림 소리 토글">🔔</button>
+    </div>
+
+    <div class="admin-layout">
+      <div class="admin-main">
+        <!-- 영역 1: 오늘 실시간 -->
+        <div class="admin-grid" id="stat-grid"></div>
+
+        <!-- 오늘 시간대별 출입 차트 -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">오늘 시간대별 출입</div>
+            <div class="chart-card-meta" id="chart-today-meta">30분 단위</div>
+          </div>
+          <div class="chart-svg-wrap">
+            <div id="chart-today-area"></div>
+          </div>
+          <div class="chart-legend">
+            <div class="chart-legend-item">
+              <span class="chart-legend-swatch" style="background:var(--success);"></span>
+              <span>누적 IN</span>
+            </div>
+            <div class="chart-legend-item">
+              <span class="chart-legend-swatch" style="background:var(--gachon-navy);"></span>
+              <span>누적 OUT</span>
+            </div>
+            <div class="chart-legend-item">
+              <span class="chart-legend-swatch" style="background:var(--gachon-gold);"></span>
+              <span>현재 체류</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 영역 2: 누적 통계 (접기) -->
+        <div class="accordion" id="cumulative-accordion">
+          <div class="accordion-head" onclick="toggleAccordion()">
+            <div class="accordion-title">누적 통계 (운영기간 전체)</div>
+            <div class="accordion-arrow">▼</div>
+          </div>
+          <div class="accordion-body" id="cumulative-body">
+            <div class="admin-grid" id="cumulative-grid"></div>
+
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div class="chart-card-title">일자별 출석 인원</div>
+                <div class="chart-card-meta" id="chart-daily-meta"></div>
+              </div>
+              <div class="chart-svg-wrap">
+                <div id="chart-daily-area"></div>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div class="chart-card-title">개인별 출석 일수</div>
+                <div class="chart-card-meta" id="chart-ranking-meta"></div>
+              </div>
+              <div id="ranking-area"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 영역 3: 데이터 (탭) -->
+        <div class="tabs">
+          <button class="tab active" data-tab="logs" onclick="switchTab('logs')">출입기록</button>
+          <button class="tab" data-tab="roster" onclick="switchTab('roster')">명단 관리</button>
+        </div>
+
+        <!-- 출입기록 탭 -->
+        <div id="tab-logs" class="tab-pane">
+          <div class="table-wrap">
+            <div class="table-head">
+              <h2>출입기록</h2>
+              <div class="actions">
+                <input type="text" class="search-input" id="search-logs" placeholder="이름·ID 검색" oninput="renderLogs()">
+                <select class="filter-select" id="filter-type" onchange="renderLogs()">
+                  <option value="">처리유형 전체</option>
+                  <option value="정상">정상</option>
+                  <option value="자동마감">자동마감</option>
+                  <option value="OUT만">OUT만</option>
+                  <option value="누락">누락</option>
+                </select>
+                <select class="filter-select" id="filter-period" onchange="renderLogs()">
+                  <option value="today">오늘</option>
+                  <option value="week">최근 7일</option>
+                  <option value="all">전체</option>
+                </select>
+                <button class="btn gold" onclick="exportLogs()">CSV 다운로드</button>
+              </div>
+            </div>
+            <div style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>날짜</th>
+                    <th>ID</th>
+                    <th>성명</th>
+                    <th>IN</th>
+                    <th>OUT</th>
+                    <th>체류(분)</th>
+                    <th>처리</th>
+                    <th>비고</th>
+                    <th>관리</th>
+                  </tr>
+                </thead>
+                <tbody id="logs-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 명단 관리 탭 -->
+        <div id="tab-roster" class="tab-pane" style="display:none;">
+          <div class="table-wrap">
+            <div class="table-head">
+              <h2>명단 관리</h2>
+              <div class="actions">
+                <input type="text" class="search-input" id="search-roster" placeholder="이름·ID·소속 검색" oninput="renderRoster()">
+                <select class="filter-select" id="filter-active" onchange="renderRoster()">
+                  <option value="active">활성만</option>
+                  <option value="all">전체</option>
+                  <option value="inactive">비활성만</option>
+                </select>
+                <button class="btn ghost" onclick="assignAllIds()">ID 일괄 부여</button>
+                <button class="btn" onclick="openAddParticipant()">+ 참가자 추가</button>
+                <button class="btn gold" onclick="exportRoster()">CSV 다운로드</button>
+              </div>
+            </div>
+            <div style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>ID</th>
+                    <th>성명</th>
+                    <th>연락처</th>
+                    <th>소속</th>
+                    <th>이메일</th>
+                    <th>출석일</th>
+                    <th>상태</th>
+                    <th>관리</th>
+                  </tr>
+                </thead>
+                <tbody id="roster-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 우측: 오늘 첫 출석자 카드 -->
+      <div class="admin-side">
+        <div class="first-list-card">
+          <div class="first-list-title">🌟 오늘 첫 출석자</div>
+          <div id="first-list-content">
+            <div class="first-list-empty">아직 첫 출석자가 없습니다.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    GACHON UNIVERSITY · OFFICE OF ADMISSIONS · ADMIN
+  </footer>
+</div>
+
+
+<!-- ===================== QR 카드 출력 화면 (#print) ===================== -->
+<div class="app print" id="app-print" style="display:none;">
+  <div class="print-wrap">
+    <header class="header" style="padding: 24px 0;">
+      <div class="header-mark">QR 카드 출력</div>
+      <h1 class="header-title">QR 카드 출력</h1>
+      <p class="header-sub">A4 1장에 4장(2×2) 배치, 명찰 사이즈(90×130mm)</p>
+    </header>
+
+    <!-- 비밀번호 입력 -->
+    <section class="card" id="print-login">
+      <div class="step-label">관리자 인증</div>
+      <h2 class="step-title">비밀번호 입력</h2>
+      <p class="step-desc">QR 카드를 출력하려면 관리자 비밀번호가 필요합니다.</p>
+      <div id="alert-print-login"></div>
+      <div class="field">
+        <input type="password" class="input" id="print-pw" placeholder="비밀번호" onkeypress="if(event.key==='Enter')printLogin()">
+      </div>
+      <button class="btn" onclick="printLogin()">접속</button>
+    </section>
+
+    <div id="print-content" style="display:none;">
+      <div class="print-controls">
+        <div class="print-info" id="print-info">전체 명단을 불러오는 중...</div>
+        <input type="text" class="search-input" id="print-search" placeholder="ID 또는 이름 검색" oninput="renderPrintCards()" style="width: 200px;">
+        <button class="btn ghost" onclick="renderPrintCards()">새로고침</button>
+        <button class="btn gold" onclick="window.print()">🖨 인쇄 / PDF 저장</button>
+      </div>
+      <div id="print-pages"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===================== 모달 ===================== -->
+<!-- 첫 출석 알림 모달 -->
+<div class="modal-bg" id="modal-first">
+  <div class="modal first-modal">
+    <div class="first-modal-emoji">🎉</div>
+    <div class="first-modal-title">첫 출석</div>
+    <div class="first-modal-name" id="first-modal-name">김민재</div>
+    <div class="first-modal-affil" id="first-modal-affil">가천고등학교</div>
+    <div class="first-modal-msg">운영기간 첫 출석을 환영합니다!</div>
+    <button class="btn" onclick="closeFirstModal()">확인</button>
+  </div>
+</div>
+
+<!-- 출입기록 수정 모달 -->
+<div class="modal-bg" id="modal-edit-log">
+  <div class="modal">
+    <h3>출입기록 수정</h3>
+    <div id="alert-edit-log"></div>
+    <div class="field">
+      <label class="field-label">IN 시각 (HH:mm:ss)</label>
+      <input type="text" class="input" id="edit-log-in" placeholder="09:30:00">
+    </div>
+    <div class="field">
+      <label class="field-label">OUT 시각 (HH:mm:ss)</label>
+      <input type="text" class="input" id="edit-log-out" placeholder="12:15:00">
+    </div>
+    <div class="field">
+      <label class="field-label">처리유형</label>
+      <select class="input" id="edit-log-type">
+        <option value="정상">정상</option>
+        <option value="자동마감">자동마감</option>
+        <option value="OUT만">OUT만</option>
+        <option value="누락">누락</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field-label">비고</label>
+      <input type="text" class="input" id="edit-log-note" placeholder="운영자 메모">
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closeEditLog()">취소</button>
+      <button class="btn" onclick="saveEditLog()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 참가자 추가/수정 모달 -->
+<div class="modal-bg" id="modal-participant">
+  <div class="modal">
+    <h3 id="participant-modal-title">참가자 추가</h3>
+    <div id="alert-participant"></div>
+    <div class="field">
+      <label class="field-label">성명 <span class="req">*</span></label>
+      <input type="text" class="input" id="participant-name" placeholder="홍길동">
+    </div>
+    <div class="field">
+      <label class="field-label">연락처</label>
+      <input type="tel" class="input" id="participant-phone" placeholder="010-1234-5678">
+    </div>
+    <div class="field">
+      <label class="field-label">소속</label>
+      <input type="text" class="input" id="participant-affil" placeholder="가천고등학교">
+    </div>
+    <div class="field">
+      <label class="field-label">이메일</label>
+      <input type="email" class="input" id="participant-email" placeholder="example@email.com">
+    </div>
+    <div class="field">
+      <label class="field-label">비고</label>
+      <input type="text" class="input" id="participant-note" placeholder="추가 메모">
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closeParticipantModal()">취소</button>
+      <button class="btn" id="btn-save-participant" onclick="saveParticipant()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div class="modal-bg" id="modal-delete">
+  <div class="modal danger">
+    <h3>출입기록 삭제</h3>
+    <div id="alert-delete"></div>
+    <div class="alert error" style="margin-bottom:16px;">
+      삭제하면 복구할 수 없습니다. 감사로그에는 기록이 남습니다.
+    </div>
+    <div id="delete-target-info" style="background:#faf8f3;padding:12px;border-radius:3px;margin-bottom:16px;font-size:13px;"></div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closeDeleteModal()">취소</button>
+      <button class="btn danger" id="btn-delete-confirm" onclick="confirmDelete()">삭제</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===================== 모드 토글 링크 ===================== -->
+<div class="mode-switch">
+  <a href="#" id="mode-link" onclick="cycleMode(); return false;">모드 변경</a>
+</div>
+
+
+<!-- ===================== 외부 라이브러리 ===================== -->
+<!-- html5-qrcode: iPad 카메라로 QR 인식 -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<!-- qrcode-generator: 클라이언트에서 QR 코드 생성 (카드 출력용) -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
+
+<script>
+/* ============================================================
+   설정: Apps Script 웹앱 URL을 여기에 붙여넣으세요
+   ============================================================ */
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9smMGtk-aIomrp3RGGIZ_JqCVOxAef_i4mFCYW51-3y-seeYxnaCKYBFyJUt4oDyqDA/exec';
+/* ============================================================ */
+
+// 운영 기간 (HTML 표시용 - Apps Script와 일치 권장)
+const PROGRAM_PERIOD = '2026.09 ~ 11';
+
+// 화면 표시 시간 설정
+const SCAN_RESULT_DURATION_MS = 3000;       // 풀스크린 결과 3초
+const FIRST_MODAL_AUTOCLOSE_MS = 5000;      // 첫 출석 모달 5초
+
+// ==================== 전역 상태 ====================
+let state = {
+  mode: 'attendee',
+  adminPw: '',
+  adminInterval: null,
+  adminContent: { logs: [], roster: [], stats: {}, cumulative: null, firstAttendees: [] },
+  prevFirstIds: new Set(),    // 이전 폴링까지 인지된 첫 출석자 ID들
+  firstModalQueue: [],        // 첫 출석 모달 큐
+  firstModalShowing: false,
+  soundEnabled: true,
+  scanner: null,
+  scanResultTimer: null,
+  scanCooldown: false,
+  todayCount: 0,
+  editingLogRow: null,
+  editingParticipantRow: null,
+  deletingLogRow: null,
+  printRoster: []
+};
+
+// ==================== 모드 분기 ====================
+function checkMode() {
+  const hash = location.hash;
+  const apps = ['app-attendee', 'app-scan', 'app-admin', 'app-print'];
+  apps.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  document.body.classList.remove('mode-scan');
+
+  if (hash === '#scan') {
+    state.mode = 'scan';
+    document.getElementById('app-scan').style.display = 'flex';
+    document.body.classList.add('mode-scan');
+    initScanMode();
+  } else if (hash === '#admin') {
+    state.mode = 'admin';
+    document.getElementById('app-admin').style.display = 'block';
+  } else if (hash === '#print') {
+    state.mode = 'print';
+    document.getElementById('app-print').style.display = 'block';
+  } else {
+    state.mode = 'attendee';
+    document.getElementById('app-attendee').style.display = 'block';
+  }
+
+  // 모드 토글 링크 텍스트 갱신
+  const modeLink = document.getElementById('mode-link');
+  const modeSwitch = document.querySelector('.mode-switch');
+  if (modeLink) {
+    if (state.mode === 'scan') {
+      modeSwitch.style.display = 'none';  // 스캔 화면에서는 토글 숨김
+    } else if (state.mode === 'admin' || state.mode === 'print') {
+      modeSwitch.style.display = 'block';
+      modeLink.textContent = '참석자 보기';
+    } else {
+      modeSwitch.style.display = 'none';  // 참석자 화면에서도 숨김 (학생 노출 차단)
+    }
+  }
+}
+
+function cycleMode() {
+  // 현재 모드에 따라 다음 모드로 순환
+  if (state.mode === 'admin' || state.mode === 'print') {
+    location.hash = '';
+  }
+  location.reload();
+}
+
+window.addEventListener('hashchange', () => location.reload());
+
+
+// ==================== API 호출 ====================
+async function callApi(action, params = {}) {
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    return { success: false, error: 'Apps Script URL이 설정되지 않았습니다. 코드 상단의 SCRIPT_URL을 확인해 주세요.' };
+  }
+
+  const url = new URL(SCRIPT_URL);
+  url.searchParams.set('action', action);
+  for (const k in params) {
+    url.searchParams.set(k, typeof params[k] === 'object' ? JSON.stringify(params[k]) : params[k]);
+  }
+
+  try {
+    const res = await fetch(url.toString(), { method: 'GET', redirect: 'follow' });
+    const data = await res.json();
+    return data;
+  } catch (e) {
+    return { success: false, error: '네트워크 오류: ' + e.message };
+  }
+}
+
+
+// ==================== 유틸 ====================
+function normalizePhone(p) {
+  let digits = String(p || '').replace(/[^0-9]/g, '');
+  if (digits.length === 10 && digits.charAt(0) === '1') {
+    digits = '0' + digits;
+  }
+  return digits;
+}
+function formatPhone(p) {
+  const n = normalizePhone(p);
+  if (n.length === 11) return `${n.slice(0,3)}-${n.slice(3,7)}-${n.slice(7)}`;
+  if (n.length === 10) return `${n.slice(0,3)}-${n.slice(3,6)}-${n.slice(6)}`;
+  return n;
+}
+function maskPhone(p) {
+  const n = normalizePhone(p);
+  if (n.length === 11) return `${n.slice(0,3)}-****-${n.slice(7)}`;
+  return n;
+}
+function showAlert(targetId, message, type = 'error') {
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  el.innerHTML = `<div class="alert ${type}">${message}</div>`;
+}
+function clearAlert(targetId) {
+  const el = document.getElementById(targetId);
+  if (el) el.innerHTML = '';
+}
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function formatStayMinutes(min) {
+  if (!min || min < 1) return '0분';
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  if (h > 0 && m > 0) return `${h}시간 ${m}분`;
+  if (h > 0) return `${h}시간`;
+  return `${m}분`;
+}
+function formatTime(ts) {
+  if (!ts) return '';
+  const m = String(ts).match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (!m) return ts;
+  return `${m[1].padStart(2,'0')}:${m[2]}:${m[3] || '00'}`;
+}
+function formatTimeShort(ts) {
+  if (!ts) return '';
+  const m = String(ts).match(/(\d{1,2}):(\d{2})/);
+  if (!m) return ts;
+  return `${m[1].padStart(2,'0')}:${m[2]}`;
+}
+
+
+// ==================== 효과음 (Web Audio API) ====================
+let audioCtx = null;
+function playDing() {
+  if (!state.soundEnabled) return;
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    // 골드 계열 "딩↑" 사운드
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.4);
+  } catch (e) {
+    console.warn('소리 재생 실패:', e);
+  }
+}
+
+function playBeep() {
+  if (!state.soundEnabled) return;
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.setValueAtTime(660, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.2, audioCtx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.15);
+  } catch (e) {}
+}
+
+
+// ==================== 참석자 셀프 입력 (#) ====================
+document.getElementById('att-input-phone').addEventListener('input', function(e) {
+  let val = normalizePhone(this.value);
+  if (val.length > 11) val = val.slice(0, 11);
+  let formatted = val;
+  if (val.length >= 4 && val.length <= 7) formatted = `${val.slice(0,3)}-${val.slice(3)}`;
+  else if (val.length >= 8) formatted = `${val.slice(0,3)}-${val.slice(3,7)}-${val.slice(7)}`;
+  this.value = formatted;
+});
+
+async function attSearch() {
+  clearAlert('alert-att-phone');
+  const phone = normalizePhone(document.getElementById('att-input-phone').value);
+
+  if (phone.length !== 11) {
+    showAlert('alert-att-phone', '휴대폰 번호 11자리를 입력해 주세요.');
+    return;
+  }
+  if (!phone.startsWith('01')) {
+    showAlert('alert-att-phone', '휴대폰 번호 형식이 올바르지 않습니다.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-att-search');
+  btn.disabled = true;
+  btn.textContent = '조회 중...';
+
+  // 1단계: lookup으로 명단 조회 + 오늘 상태 확인
+  const lookup = await callApi('lookup', { key: phone });
+  if (!lookup.success) {
+    btn.disabled = false; btn.textContent = '조회하기';
+    showAlert('alert-att-phone', lookup.error || '조회 실패');
+    return;
+  }
+  if (!lookup.found || lookup.matches.length === 0) {
+    btn.disabled = false; btn.textContent = '조회하기';
+    showAlert('alert-att-phone', '명단에 등록되지 않은 번호입니다. 운영자에게 문의해 주세요.');
+    return;
+  }
+
+  // 동일 번호로 여러 명일 가능성은 낮지만, 첫 번째 매치 사용
+  const target = lookup.matches[0];
+  if (!target.active) {
+    btn.disabled = false; btn.textContent = '조회하기';
+    showAlert('alert-att-phone', '비활성 참가자입니다. 운영자에게 문의해 주세요.');
+    return;
+  }
+
+  // 2단계: checkInOut 호출 (action=auto이면 서버가 자동 판정)
+  const res = await callApi('checkInOut', { data: { id: target.id, action: 'auto' } });
+  btn.disabled = false; btn.textContent = '조회하기';
+
+  if (!res.success) {
+    if (res.debounced) {
+      showAlert('alert-att-phone', `방금 처리되었습니다 (${res.secondsAgo}초 전). 잠시 후 다시 시도해 주세요.`, 'warn');
+    } else {
+      showAlert('alert-att-phone', res.error || '체크 실패');
+    }
+    return;
+  }
+
+  // 결과 화면 표시
+  showAttResult(res);
+}
+
+function showAttResult(res) {
+  document.getElementById('step-att-phone').style.display = 'none';
+  document.getElementById('step-att-result').style.display = 'block';
+
+  const tag = document.getElementById('att-result-tag');
+  const stayWrap = document.getElementById('att-result-stay-wrap');
+
+  if (res.action === 'in') {
+    tag.textContent = res.isFirstAttendance ? '첫 출석 · 입장' : '입장';
+    tag.style.background = res.isFirstAttendance ? 'var(--gachon-gold)' : 'var(--success)';
+    tag.style.color = res.isFirstAttendance ? 'var(--gachon-navy-deep)' : 'white';
+    stayWrap.style.display = 'none';
+  } else {
+    tag.textContent = '퇴장';
+    tag.style.background = 'var(--gachon-navy)';
+    tag.style.color = 'white';
+    stayWrap.style.display = 'block';
+    document.getElementById('att-result-stay').textContent = formatStayMinutes(res.stayMinutes);
+  }
+
+  document.getElementById('att-result-name').textContent = res.name;
+  document.getElementById('att-result-sub').textContent = res.affiliation || '';
+  document.getElementById('att-result-time').textContent = formatTime(res.timestamp);
+  window.scrollTo(0, 0);
+}
+
+function attReset() {
+  document.getElementById('step-att-phone').style.display = 'block';
+  document.getElementById('step-att-result').style.display = 'none';
+  document.getElementById('att-input-phone').value = '';
+  clearAlert('alert-att-phone');
+  document.getElementById('att-input-phone').focus();
+}
+
+
+// ==================== iPad 스캔 화면 (#scan) ====================
+function initScanMode() {
+  // 오늘 날짜 표시
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  document.getElementById('scan-date').textContent = dateStr;
+
+  // 카메라 시작
+  startScanner();
+  // 오늘 카운트 갱신 시작 (30초마다)
+  updateTodayCount();
+  setInterval(updateTodayCount, 30000);
+}
+
+function startScanner() {
+  if (typeof Html5Qrcode === 'undefined') {
+    alert('QR 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.');
+    return;
+  }
+
+  state.scanner = new Html5Qrcode('qr-reader');
+  const config = {
+    fps: 10,
+    qrbox: { width: 250, height: 250 },
+    aspectRatio: 1.0
+  };
+
+  state.scanner.start(
+    { facingMode: 'environment' },  // 후면 카메라 우선
+    config,
+    onScanSuccess,
+    onScanFailure
+  ).catch(err => {
+    console.error('카메라 시작 실패:', err);
+    alert('카메라를 시작할 수 없습니다. 카메라 권한을 허용해 주세요.\n\n오류: ' + err);
+  });
+}
+
+function onScanSuccess(decodedText) {
+  if (state.scanCooldown) return;  // 쿨다운 중
+  state.scanCooldown = true;
+  setTimeout(() => { state.scanCooldown = false; }, 3500);  // 3.5초 후 다음 인식
+
+  processScan(decodedText);
+}
+
+function onScanFailure(err) {
+  // 매 프레임 호출되므로 무시
+}
+
+async function processScan(key) {
+  // 1단계: lookup
+  const lookup = await callApi('lookup', { key: key });
+  if (!lookup.success) {
+    showScanResult({ success: false, error: lookup.error || '조회 실패', notFound: true });
+    return;
+  }
+  if (!lookup.found || lookup.matches.length === 0) {
+    showScanResult({ success: false, error: '명단에 없습니다', notFound: true });
+    return;
+  }
+  const target = lookup.matches[0];
+  if (!target.active) {
+    showScanResult({ success: false, error: '비활성 참가자입니다', inactive: true, name: target.name });
+    return;
+  }
+
+  // 2단계: checkInOut
+  const res = await callApi('checkInOut', { data: { id: target.id, action: 'auto' } });
+  showScanResult(res);
+
+  if (res.success) {
+    state.todayCount++;
+    document.getElementById('scan-today-count').textContent = state.todayCount;
+  }
+}
+
+function showScanResult(res) {
+  const overlay = document.getElementById('scan-result');
+  overlay.classList.remove('bg-in', 'bg-out', 'bg-first', 'bg-error', 'bg-debounce', 'show');
+
+  const icon = document.getElementById('scan-result-icon');
+  const name = document.getElementById('scan-result-name');
+  const sub = document.getElementById('scan-result-sub');
+  const time = document.getElementById('scan-result-time');
+  const stay = document.getElementById('scan-result-stay');
+  const extra = document.getElementById('scan-result-extra');
+
+  stay.style.display = 'none';
+  extra.textContent = '';
+
+  if (!res.success) {
+    if (res.debounced) {
+      overlay.classList.add('bg-debounce');
+      icon.textContent = '대기';
+      name.textContent = res.name || '';
+      sub.textContent = '방금 처리됨';
+      time.textContent = res.secondsAgo + '초 전';
+      playBeep();
+    } else {
+      overlay.classList.add('bg-error');
+      icon.textContent = '확인';
+      name.textContent = res.name || '미등록';
+      sub.textContent = res.error || '오류';
+      time.textContent = '';
+      extra.textContent = '운영자에게 문의해 주세요';
+      playBeep();
+    }
+  } else if (res.action === 'in') {
+    if (res.isFirstAttendance) {
+      overlay.classList.add('bg-first');
+      icon.textContent = '🎉 첫 출석';
+      extra.textContent = '환영합니다!';
+    } else {
+      overlay.classList.add('bg-in');
+      icon.textContent = '입장';
+      if (res.todayCheckCount > 1) {
+        extra.textContent = `오늘 ${res.todayCheckCount}번째 입장`;
+      }
+    }
+    name.textContent = res.name;
+    sub.textContent = res.affiliation || '';
+    time.textContent = formatTime(res.timestamp);
+    playDing();
+  } else {
+    // OUT
+    overlay.classList.add('bg-out');
+    icon.textContent = '퇴장';
+    name.textContent = res.name;
+    sub.textContent = res.affiliation || '';
+    time.textContent = formatTime(res.timestamp);
+    if (res.stayMinutes > 0) {
+      stay.textContent = '체류 ' + formatStayMinutes(res.stayMinutes);
+      stay.style.display = 'inline-block';
+    }
+    playDing();
+  }
+
+  overlay.classList.add('show');
+
+  // 3초 후 자동 닫기
+  if (state.scanResultTimer) clearTimeout(state.scanResultTimer);
+  state.scanResultTimer = setTimeout(() => {
+    overlay.classList.remove('show');
+  }, SCAN_RESULT_DURATION_MS);
+}
+
+async function updateTodayCount() {
+  // 비공개 데이터라 비밀번호 없이는 못 가져옴 - 그래서 실시간 카운트는 클라이언트가 누적
+  // 별도 조회 안 함 (스캔할 때마다 +1)
+}
+
+function openPhoneInput() {
+  document.getElementById('scan-modal-phone').classList.add('show');
+  document.getElementById('scan-input-phone').value = '';
+  clearAlert('alert-scan-phone');
+  setTimeout(() => document.getElementById('scan-input-phone').focus(), 100);
+}
+function closePhoneInput() {
+  document.getElementById('scan-modal-phone').classList.remove('show');
+}
+
+document.getElementById('scan-input-phone').addEventListener('input', function() {
+  let val = normalizePhone(this.value);
+  if (val.length > 11) val = val.slice(0, 11);
+  let formatted = val;
+  if (val.length >= 4 && val.length <= 7) formatted = `${val.slice(0,3)}-${val.slice(3)}`;
+  else if (val.length >= 8) formatted = `${val.slice(0,3)}-${val.slice(3,7)}-${val.slice(7)}`;
+  this.value = formatted;
+});
+
+async function submitPhoneScan() {
+  clearAlert('alert-scan-phone');
+  const phone = normalizePhone(document.getElementById('scan-input-phone').value);
+  if (phone.length !== 11) {
+    showAlert('alert-scan-phone', '11자리를 입력해 주세요.');
+    return;
+  }
+  closePhoneInput();
+  await processScan(phone);
+}
+
+
+// ==================== 관리자 페이지 (#admin) ====================
+async function adminLogin() {
+  clearAlert('alert-admin-login');
+  const pw = document.getElementById('admin-pw').value;
+  if (!pw) { showAlert('alert-admin-login', '비밀번호를 입력해 주세요.'); return; }
+
+  state.adminPw = pw;
+  const ok = await loadAdminData();
+  if (ok) {
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-content').style.display = 'block';
+
+    // 30초 자동 갱신
+    if (state.adminInterval) clearInterval(state.adminInterval);
+    state.adminInterval = setInterval(loadAdminData, 30000);
+  }
+}
+
+async function loadAdminData() {
+  // 통계 + 출입기록 + 명단 + 첫출석자 병렬 조회
+  const [stats, logs, roster, firstAtt] = await Promise.all([
+    callApi('getStats', { password: state.adminPw }),
+    callApi('getAllLogs', { password: state.adminPw }),
+    callApi('getRoster', { password: state.adminPw }),
+    callApi('getFirstAttendees', { password: state.adminPw })
+  ]);
+
+  if (!stats.success) {
+    showAlert('alert-admin-login', stats.error || '인증 실패');
+    if (state.adminInterval) clearInterval(state.adminInterval);
+    return false;
+  }
+  if (!logs.success) {
+    showAlert('alert-admin-login', logs.error);
+    return false;
+  }
+
+  state.adminContent.stats = stats.stats;
+  state.adminContent.logs = logs.records || [];
+  state.adminContent.roster = roster.success ? (roster.roster || []) : [];
+  state.adminContent.firstAttendees = firstAtt.success ? (firstAtt.firstAttendees || []) : [];
+
+  // 첫 출석자 신규 감지 → 모달
+  detectNewFirstAttendees();
+
+  renderStats();
+  renderTodayChart();
+  renderLogs();
+  renderRoster();
+  renderFirstList();
+
+  document.getElementById('admin-update-text').textContent =
+    '마지막 업데이트: ' + new Date().toLocaleTimeString('ko-KR');
+  return true;
+}
+
+// 새로 감지된 첫 출석자가 있으면 모달 큐에 추가
+function detectNewFirstAttendees() {
+  const current = state.adminContent.firstAttendees;
+  current.forEach(f => {
+    if (!state.prevFirstIds.has(f.id)) {
+      state.firstModalQueue.push(f);
+    }
+  });
+  state.prevFirstIds = new Set(current.map(f => f.id));
+  showNextFirstModal();
+}
+
+function showNextFirstModal() {
+  if (state.firstModalShowing) return;
+  if (state.firstModalQueue.length === 0) return;
+
+  const f = state.firstModalQueue.shift();
+  state.firstModalShowing = true;
+
+  document.getElementById('first-modal-name').textContent = f.name;
+  document.getElementById('first-modal-affil').textContent = f.affiliation || '';
+  document.getElementById('modal-first').classList.add('show');
+  playDing();
+
+  // 5초 후 자동 닫힘
+  setTimeout(closeFirstModal, FIRST_MODAL_AUTOCLOSE_MS);
+}
+
+function closeFirstModal() {
+  document.getElementById('modal-first').classList.remove('show');
+  state.firstModalShowing = false;
+  // 큐에 다음 게 있으면 잠시 후 띄움
+  if (state.firstModalQueue.length > 0) {
+    setTimeout(showNextFirstModal, 500);
+  }
+}
+
+function renderStats() {
+  const s = state.adminContent.stats;
+  const grid = document.getElementById('stat-grid');
+  grid.innerHTML = `
+    <div class="stat">
+      <div class="stat-label">지금 체류 중</div>
+      <div class="stat-value">${s.todayInside || 0}</div>
+      <div class="stat-sub">아직 OUT 안 한 인원</div>
+    </div>
+    <div class="stat gold">
+      <div class="stat-label">오늘 누적 출석</div>
+      <div class="stat-value">${s.todayPeople || 0}</div>
+      <div class="stat-sub">오늘 IN한 고유 인원</div>
+    </div>
+    <div class="stat gold">
+      <div class="stat-label">오늘 첫 출석자</div>
+      <div class="stat-value">${s.todayFirst || 0}</div>
+      <div class="stat-sub">운영기간 첫 출석</div>
+    </div>
+    <div class="stat warn">
+      <div class="stat-label">어제 자동마감</div>
+      <div class="stat-value">${s.yesterdayAutoClose || 0}</div>
+      <div class="stat-sub">22시 자동 OUT 건수</div>
+    </div>
+  `;
+}
+
+function renderTodayChart() {
+  const area = document.getElementById('chart-today-area');
+  const today = new Date().toISOString().split('T')[0];
+  // 오늘 출입기록만 필터
+  const todayLogs = state.adminContent.logs.filter(r => r.date === today);
+
+  if (todayLogs.length === 0) {
+    area.innerHTML = '<div class="chart-empty">아직 오늘 출입기록이 없습니다.</div>';
+    return;
+  }
+
+  // 30분 단위 버킷
+  const events = [];
+  todayLogs.forEach(r => {
+    if (r.inTime) events.push({ time: r.inTime, type: 'in' });
+    if (r.outTime) events.push({ time: r.outTime, type: 'out' });
+  });
+  events.sort((a, b) => a.time.localeCompare(b.time));
+
+  if (events.length === 0) {
+    area.innerHTML = '<div class="chart-empty">아직 오늘 출입기록이 없습니다.</div>';
+    return;
+  }
+
+  const minTime = events[0].time;
+  const nowTime = new Date().toTimeString().split(' ')[0];
+  const maxTime = events[events.length - 1].time > nowTime ? events[events.length - 1].time : nowTime;
+
+  const minMin = timeToMin(minTime);
+  const maxMin = timeToMin(maxTime);
+  const startMin = Math.floor(minMin / 30) * 30;
+  const endMin = Math.ceil((maxMin + 30) / 30) * 30;
+  const bucketCount = Math.max(2, (endMin - startMin) / 30 + 1);
+
+  const buckets = [];
+  for (let i = 0; i < bucketCount; i++) {
+    buckets.push({ min: startMin + i * 30, in: 0, out: 0 });
+  }
+  events.forEach(e => {
+    const idx = Math.floor((timeToMin(e.time) - startMin) / 30);
+    if (idx >= 0 && idx < bucketCount) {
+      if (e.type === 'in') buckets[idx].in++;
+      else buckets[idx].out++;
+    }
+  });
+
+  // 누적
+  let cumIn = 0, cumOut = 0;
+  buckets.forEach(b => {
+    cumIn += b.in;
+    cumOut += b.out;
+    b.cumIn = cumIn;
+    b.cumOut = cumOut;
+    b.inside = cumIn - cumOut;
+  });
+
+  const W = 700, H = 200;
+  const PAD_LEFT = 40, PAD_RIGHT = 16, PAD_TOP = 14, PAD_BOTTOM = 28;
+  const plotW = W - PAD_LEFT - PAD_RIGHT;
+  const plotH = H - PAD_TOP - PAD_BOTTOM;
+
+  const maxValue = Math.max(...buckets.map(b => Math.max(b.cumIn, b.cumOut, b.inside)), 1);
+  const yTicks = niceTicks(maxValue, 4);
+  const yMax = yTicks[yTicks.length - 1];
+
+  const xAt = (i) => PAD_LEFT + (bucketCount === 1 ? plotW / 2 : (i / (bucketCount - 1)) * plotW);
+  const yAt = (val) => PAD_TOP + plotH - (val / yMax) * plotH;
+
+  const pathIn = buckets.map((b, i) => `${i === 0 ? 'M' : 'L'}${xAt(i).toFixed(1)},${yAt(b.cumIn).toFixed(1)}`).join(' ');
+  const pathOut = buckets.map((b, i) => `${i === 0 ? 'M' : 'L'}${xAt(i).toFixed(1)},${yAt(b.cumOut).toFixed(1)}`).join(' ');
+  const pathInside = buckets.map((b, i) => `${i === 0 ? 'M' : 'L'}${xAt(i).toFixed(1)},${yAt(b.inside).toFixed(1)}`).join(' ');
+  const areaInside = pathInside + ` L${xAt(bucketCount - 1).toFixed(1)},${(PAD_TOP + plotH).toFixed(1)} L${xAt(0).toFixed(1)},${(PAD_TOP + plotH).toFixed(1)} Z`;
+
+  const labelStep = Math.max(1, Math.ceil(bucketCount / 6));
+  const xLabels = buckets.map((b, i) => {
+    if (i % labelStep !== 0 && i !== bucketCount - 1) return '';
+    return `<text class="axis-text" x="${xAt(i).toFixed(1)}" y="${(H - 8).toFixed(1)}" text-anchor="middle">${minToTime(b.min)}</text>`;
+  }).join('');
+
+  const yLabels = yTicks.map(t => {
+    const y = yAt(t);
+    return `
+      <line class="grid-line" x1="${PAD_LEFT}" y1="${y.toFixed(1)}" x2="${(W - PAD_RIGHT).toFixed(1)}" y2="${y.toFixed(1)}"/>
+      <text class="axis-text" x="${(PAD_LEFT - 6).toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="end">${t}</text>
+    `;
+  }).join('');
+
+  area.innerHTML = `
+    <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+      ${yLabels}
+      <line class="axis-line" x1="${PAD_LEFT}" y1="${PAD_TOP}" x2="${PAD_LEFT}" y2="${(PAD_TOP + plotH).toFixed(1)}"/>
+      <line class="axis-line" x1="${PAD_LEFT}" y1="${(PAD_TOP + plotH).toFixed(1)}" x2="${(W - PAD_RIGHT).toFixed(1)}" y2="${(PAD_TOP + plotH).toFixed(1)}"/>
+      <path class="area-inside" d="${areaInside}"/>
+      <path class="line-in" d="${pathIn}"/>
+      <path class="line-out" d="${pathOut}"/>
+      <path class="line-inside" d="${pathInside}"/>
+      ${xLabels}
+    </svg>
+  `;
+
+  const meta = document.getElementById('chart-today-meta');
+  meta.textContent = `${minToTime(startMin)} ~ ${minToTime(endMin)} · 30분 단위`;
+}
+
+function timeToMin(t) {
+  const m = String(t || '').match(/(\d{1,2}):(\d{2})/);
+  if (!m) return 0;
+  return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+}
+function minToTime(min) {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+function niceTicks(maxVal, targetCount) {
+  if (maxVal <= targetCount) {
+    const ticks = [];
+    for (let i = 0; i <= maxVal; i++) ticks.push(i);
+    return ticks.length > 0 ? ticks : [0, 1];
+  }
+  const rough = maxVal / targetCount;
+  const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+  const norm = rough / mag;
+  let step;
+  if (norm < 1.5) step = 1 * mag;
+  else if (norm < 3) step = 2 * mag;
+  else if (norm < 7) step = 5 * mag;
+  else step = 10 * mag;
+  const ticks = [];
+  for (let v = 0; v <= maxVal + step; v += step) ticks.push(Math.round(v));
+  return ticks;
+}
+
+function renderFirstList() {
+  const container = document.getElementById('first-list-content');
+  const list = state.adminContent.firstAttendees || [];
+  if (list.length === 0) {
+    container.innerHTML = '<div class="first-list-empty">아직 첫 출석자가 없습니다.</div>';
+    return;
+  }
+  container.innerHTML = list.map(f => `
+    <div class="first-list-item">
+      <div class="first-list-name">${escapeHtml(f.name)}</div>
+      <div class="first-list-meta">${escapeHtml(f.affiliation || '')} · ${formatTimeShort(f.time)}</div>
+    </div>
+  `).join('');
+}
+
+// 누적 통계 펼치기/접기
+function toggleAccordion() {
+  const acc = document.getElementById('cumulative-accordion');
+  const isOpen = acc.classList.toggle('open');
+  if (isOpen && !state.adminContent.cumulative) {
+    loadCumulativeStats();
+  }
+}
+
+async function loadCumulativeStats() {
+  const res = await callApi('getCumulativeStats', { password: state.adminPw });
+  if (!res.success) {
+    document.getElementById('cumulative-grid').innerHTML = `<div class="chart-empty">${res.error}</div>`;
+    return;
+  }
+  state.adminContent.cumulative = res.stats;
+  renderCumulative();
+}
+
+function renderCumulative() {
+  const c = state.adminContent.cumulative;
+  if (!c) return;
+
+  document.getElementById('cumulative-grid').innerHTML = `
+    <div class="stat">
+      <div class="stat-label">운영 일수</div>
+      <div class="stat-value">${c.operationDays}</div>
+      <div class="stat-sub">9월 1일~오늘</div>
+    </div>
+    <div class="stat gold">
+      <div class="stat-label">총 출석 연인원</div>
+      <div class="stat-value">${c.totalCheckIns}</div>
+      <div class="stat-sub">누적 IN 횟수</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">출석한 인원</div>
+      <div class="stat-value">${c.attendedCount}<span style="font-size:16px;color:var(--ink-mute);"> / ${c.totalRoster}</span></div>
+      <div class="stat-sub">한 번이라도 출석</div>
+    </div>
+    <div class="stat deep">
+      <div class="stat-label">평균 체류시간</div>
+      <div class="stat-value">${formatStayMinutes(c.avgStayMinutes)}</div>
+      <div class="stat-sub">정상 처리 기준</div>
+    </div>
+  `;
+
+  renderDailyChart(c.dailySeries);
+  renderRanking(c.ranking);
+}
+
+function renderDailyChart(series) {
+  const area = document.getElementById('chart-daily-area');
+  if (!series || series.length === 0) {
+    area.innerHTML = '<div class="chart-empty">아직 출석 데이터가 없습니다.</div>';
+    return;
+  }
+
+  const W = 700, H = 200;
+  const PAD_LEFT = 40, PAD_RIGHT = 16, PAD_TOP = 14, PAD_BOTTOM = 36;
+  const plotW = W - PAD_LEFT - PAD_RIGHT;
+  const plotH = H - PAD_TOP - PAD_BOTTOM;
+
+  const maxValue = Math.max(...series.map(s => s.count), 1);
+  const yTicks = niceTicks(maxValue, 4);
+  const yMax = yTicks[yTicks.length - 1];
+
+  const barWidth = Math.min(40, plotW / series.length * 0.7);
+  const xAt = (i) => PAD_LEFT + (series.length === 1 ? plotW / 2 : (i / (series.length - 1)) * plotW);
+  const yAt = (val) => PAD_TOP + plotH - (val / yMax) * plotH;
+
+  const labelStep = Math.max(1, Math.ceil(series.length / 8));
+
+  const bars = series.map((s, i) => {
+    const x = xAt(i) - barWidth / 2;
+    const y = yAt(s.count);
+    const h = (PAD_TOP + plotH) - y;
+    return `<rect class="bar-attendance" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${h.toFixed(1)}">
+      <title>${s.date}: ${s.count}명</title>
+    </rect>`;
+  }).join('');
+
+  const xLabels = series.map((s, i) => {
+    if (i % labelStep !== 0 && i !== series.length - 1) return '';
+    const dayLabel = s.date.slice(5).replace('-', '/');  // MM/DD
+    return `<text class="axis-text" x="${xAt(i).toFixed(1)}" y="${(H - 16).toFixed(1)}" text-anchor="middle">${dayLabel}</text>`;
+  }).join('');
+
+  const valueLabels = series.map((s, i) => {
+    if (i % labelStep !== 0 && i !== series.length - 1) return '';
+    return `<text class="axis-text" x="${xAt(i).toFixed(1)}" y="${(yAt(s.count) - 4).toFixed(1)}" text-anchor="middle" style="font-weight:600;">${s.count}</text>`;
+  }).join('');
+
+  const yLabels = yTicks.map(t => {
+    const y = yAt(t);
+    return `
+      <line class="grid-line" x1="${PAD_LEFT}" y1="${y.toFixed(1)}" x2="${(W - PAD_RIGHT).toFixed(1)}" y2="${y.toFixed(1)}"/>
+      <text class="axis-text" x="${(PAD_LEFT - 6).toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="end">${t}</text>
+    `;
+  }).join('');
+
+  area.innerHTML = `
+    <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+      ${yLabels}
+      <line class="axis-line" x1="${PAD_LEFT}" y1="${PAD_TOP}" x2="${PAD_LEFT}" y2="${(PAD_TOP + plotH).toFixed(1)}"/>
+      <line class="axis-line" x1="${PAD_LEFT}" y1="${(PAD_TOP + plotH).toFixed(1)}" x2="${(W - PAD_RIGHT).toFixed(1)}" y2="${(PAD_TOP + plotH).toFixed(1)}"/>
+      ${bars}
+      ${valueLabels}
+      ${xLabels}
+    </svg>
+  `;
+
+  document.getElementById('chart-daily-meta').textContent = `총 ${series.length}일`;
+}
+
+function renderRanking(ranking) {
+  const area = document.getElementById('ranking-area');
+  if (!ranking || ranking.length === 0) {
+    area.innerHTML = '<div class="chart-empty">데이터가 없습니다.</div>';
+    return;
+  }
+
+  const zeroCount = ranking.filter(r => r.days === 0).length;
+  document.getElementById('chart-ranking-meta').textContent =
+    `총 ${ranking.length}명 · 출석 0회 ${zeroCount}명`;
+
+  area.innerHTML = `
+    <div class="ranking-grid">
+      ${ranking.map(r => `
+        <div class="ranking-item ${r.days === 0 ? 'zero' : ''}">
+          <div>
+            <div class="ranking-item-name">${escapeHtml(r.name)} <span style="color:var(--ink-mute);font-size:11px;">${escapeHtml(r.id)}</span></div>
+            <div class="ranking-item-affil">${escapeHtml(r.affiliation || '')}</div>
+          </div>
+          <div class="ranking-item-days">${r.days}<span style="font-size:11px;font-family:'IBM Plex Sans KR';color:var(--ink-mute);">일</span></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ==================== 출입기록 테이블 ====================
+function renderLogs() {
+  const tbody = document.getElementById('logs-body');
+  const search = (document.getElementById('search-logs').value || '').toLowerCase();
+  const typeFilter = document.getElementById('filter-type').value;
+  const periodFilter = document.getElementById('filter-period').value;
+
+  let filtered = state.adminContent.logs.slice();
+
+  // 기간 필터
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  if (periodFilter === 'today') {
+    filtered = filtered.filter(r => r.date === todayStr);
+  } else if (periodFilter === 'week') {
+    const weekAgo = new Date(today.getTime() - 7 * 86400000).toISOString().split('T')[0];
+    filtered = filtered.filter(r => r.date >= weekAgo);
+  }
+
+  if (typeFilter) {
+    filtered = filtered.filter(r => r.type === typeFilter);
+  }
+
+  if (search) {
+    filtered = filtered.filter(r =>
+      r.name.toLowerCase().includes(search) ||
+      r.id.toLowerCase().includes(search)
+    );
+  }
+
+  // 최신순
+  filtered.sort((a, b) => {
+    if (a.date !== b.date) return b.date.localeCompare(a.date);
+    const aTime = a.outTime || a.inTime || '';
+    const bTime = b.outTime || b.inTime || '';
+    return bTime.localeCompare(aTime);
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--ink-mute);">조회된 기록이 없습니다.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((r, i) => {
+    let rowClass = '';
+    if (r.type === '자동마감') rowClass = 'row-autoclose';
+    else if (r.type === 'OUT만') rowClass = 'row-outonly';
+    else if (r.note && r.note.indexOf('짧은 체류') >= 0) rowClass = 'row-shortstay';
+
+    let typeTag;
+    switch (r.type) {
+      case '정상': typeTag = '<span class="tag-normal">정상</span>'; break;
+      case '자동마감': typeTag = '<span class="tag-autoclose">자동마감</span>'; break;
+      case 'OUT만': typeTag = '<span class="tag-outonly">OUT만</span>'; break;
+      case '누락': typeTag = '<span class="tag-omit">누락</span>'; break;
+      default: typeTag = escapeHtml(r.type);
+    }
+
+    return `
+      <tr class="${rowClass}">
+        <td>${i + 1}</td>
+        <td>${escapeHtml(r.date)}</td>
+        <td style="font-family:monospace;font-size:11px;">${escapeHtml(r.id)}</td>
+        <td><strong>${escapeHtml(r.name)}</strong></td>
+        <td>${escapeHtml(r.inTime || '-')}</td>
+        <td>${escapeHtml(r.outTime || '-')}</td>
+        <td>${r.stayMinutes ? formatStayMinutes(r.stayMinutes) : '-'}</td>
+        <td>${typeTag}</td>
+        <td style="font-size:11px;color:var(--ink-soft);max-width:180px;">${escapeHtml(r.note)}</td>
+        <td style="white-space:nowrap;">
+          <button class="icon-btn" onclick="openEditLog(${r.rowIndex})">수정</button>
+          <button class="icon-btn danger" onclick="openDeleteLog(${r.rowIndex})">삭제</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// 출입기록 수정
+function openEditLog(rowIndex) {
+  const r = state.adminContent.logs.find(x => x.rowIndex === rowIndex);
+  if (!r) return;
+  state.editingLogRow = rowIndex;
+  document.getElementById('edit-log-in').value = r.inTime || '';
+  document.getElementById('edit-log-out').value = r.outTime || '';
+  document.getElementById('edit-log-type').value = r.type || '정상';
+  document.getElementById('edit-log-note').value = r.note || '';
+  clearAlert('alert-edit-log');
+  document.getElementById('modal-edit-log').classList.add('show');
+}
+function closeEditLog() {
+  document.getElementById('modal-edit-log').classList.remove('show');
+  state.editingLogRow = null;
+}
+async function saveEditLog() {
+  if (!state.editingLogRow) return;
+  const data = {
+    rowIndex: state.editingLogRow,
+    inTime: document.getElementById('edit-log-in').value.trim(),
+    outTime: document.getElementById('edit-log-out').value.trim(),
+    type: document.getElementById('edit-log-type').value,
+    note: document.getElementById('edit-log-note').value.trim()
+  };
+  const res = await callApi('updateLog', { data, password: state.adminPw });
+  if (!res.success) {
+    showAlert('alert-edit-log', res.error || '수정 실패');
+    return;
+  }
+  closeEditLog();
+  loadAdminData();
+}
+
+// 출입기록 삭제
+function openDeleteLog(rowIndex) {
+  const r = state.adminContent.logs.find(x => x.rowIndex === rowIndex);
+  if (!r) return;
+  state.deletingLogRow = rowIndex;
+  document.getElementById('delete-target-info').innerHTML = `
+    <strong>${escapeHtml(r.name)}</strong> <span style="color:var(--ink-mute);">(${escapeHtml(r.id)})</span><br>
+    ${escapeHtml(r.date)} · IN ${r.inTime || '-'} / OUT ${r.outTime || '-'}
+  `;
+  clearAlert('alert-delete');
+  document.getElementById('modal-delete').classList.add('show');
+}
+function closeDeleteModal() {
+  document.getElementById('modal-delete').classList.remove('show');
+  state.deletingLogRow = null;
+}
+async function confirmDelete() {
+  if (!state.deletingLogRow) return;
+  const btn = document.getElementById('btn-delete-confirm');
+  btn.disabled = true;
+  const res = await callApi('deleteLog', { data: { rowIndex: state.deletingLogRow }, password: state.adminPw });
+  btn.disabled = false;
+  if (!res.success) {
+    showAlert('alert-delete', res.error || '삭제 실패');
+    return;
+  }
+  closeDeleteModal();
+  loadAdminData();
+}
+
+// CSV 다운로드 - 출입기록
+function exportLogs() {
+  const records = state.adminContent.logs;
+  if (records.length === 0) { alert('다운로드할 데이터가 없습니다.'); return; }
+  const headers = ['#', '날짜', 'ID', '성명', 'IN시각', 'OUT시각', '체류(분)', '처리유형', '비고'];
+  const rows = records.map((r, i) => [
+    i + 1, r.date, r.id, r.name, r.inTime, r.outTime, r.stayMinutes, r.type, r.note
+  ]);
+  downloadCSV(headers, rows, '출입기록');
+}
+
+function downloadCSV(headers, rows, filename) {
+  const csv = '\uFEFF' + [headers, ...rows].map(row =>
+    row.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(',')
+  ).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const today = new Date().toISOString().split('T')[0];
+  a.download = `${filename}_${today}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// 탭 전환
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  document.getElementById('tab-logs').style.display = tab === 'logs' ? 'block' : 'none';
+  document.getElementById('tab-roster').style.display = tab === 'roster' ? 'block' : 'none';
+}
+
+// ==================== 명단 관리 테이블 ====================
+function renderRoster() {
+  const tbody = document.getElementById('roster-body');
+  const search = (document.getElementById('search-roster').value || '').toLowerCase();
+  const activeFilter = document.getElementById('filter-active').value;
+
+  let filtered = state.adminContent.roster.slice();
+
+  if (activeFilter === 'active') {
+    filtered = filtered.filter(r => r.active);
+  } else if (activeFilter === 'inactive') {
+    filtered = filtered.filter(r => !r.active);
+  }
+
+  if (search) {
+    filtered = filtered.filter(r =>
+      r.name.toLowerCase().includes(search) ||
+      r.id.toLowerCase().includes(search) ||
+      (r.affiliation || '').toLowerCase().includes(search)
+    );
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--ink-mute);">명단이 없습니다.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((r, i) => `
+    <tr class="${r.active ? '' : 'row-inactive'}">
+      <td>${i + 1}</td>
+      <td style="font-family:monospace;font-weight:700;color:var(--gachon-navy);">${escapeHtml(r.id)}</td>
+      <td><strong>${escapeHtml(r.name)}</strong></td>
+      <td>${formatPhone(r.phone)}</td>
+      <td>${escapeHtml(r.affiliation)}</td>
+      <td style="font-size:11px;color:var(--ink-soft);">${escapeHtml(r.email)}</td>
+      <td>${r.attendDays}일</td>
+      <td>${r.active ? '<span class="tag-active">활성</span>' : '<span class="tag-inactive">비활성</span>'}</td>
+      <td style="white-space:nowrap;">
+        <button class="icon-btn" onclick="openEditParticipant(${r.rowIndex})">수정</button>
+        <button class="icon-btn ${r.active ? 'danger' : ''}" onclick="confirmToggleActive(${r.rowIndex})">${r.active ? '비활성화' : '활성화'}</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openAddParticipant() {
+  state.editingParticipantRow = null;
+  document.getElementById('participant-modal-title').textContent = '참가자 추가';
+  document.getElementById('participant-name').value = '';
+  document.getElementById('participant-phone').value = '';
+  document.getElementById('participant-affil').value = '';
+  document.getElementById('participant-email').value = '';
+  document.getElementById('participant-note').value = '';
+  document.getElementById('btn-save-participant').textContent = '추가';
+  clearAlert('alert-participant');
+  document.getElementById('modal-participant').classList.add('show');
+}
+
+function openEditParticipant(rowIndex) {
+  const r = state.adminContent.roster.find(x => x.rowIndex === rowIndex);
+  if (!r) return;
+  state.editingParticipantRow = rowIndex;
+  document.getElementById('participant-modal-title').textContent = '참가자 수정';
+  document.getElementById('participant-name').value = r.name;
+  document.getElementById('participant-phone').value = formatPhone(r.phone);
+  document.getElementById('participant-affil').value = r.affiliation;
+  document.getElementById('participant-email').value = r.email;
+  document.getElementById('participant-note').value = r.note;
+  document.getElementById('btn-save-participant').textContent = '저장';
+  clearAlert('alert-participant');
+  document.getElementById('modal-participant').classList.add('show');
+}
+
+function closeParticipantModal() {
+  document.getElementById('modal-participant').classList.remove('show');
+  state.editingParticipantRow = null;
+}
+
+async function saveParticipant() {
+  clearAlert('alert-participant');
+  const data = {
+    name: document.getElementById('participant-name').value.trim(),
+    phone: normalizePhone(document.getElementById('participant-phone').value),
+    affiliation: document.getElementById('participant-affil').value.trim(),
+    email: document.getElementById('participant-email').value.trim(),
+    note: document.getElementById('participant-note').value.trim()
+  };
+  if (!data.name) {
+    showAlert('alert-participant', '성명은 필수입니다.');
+    return;
+  }
+
+  let res;
+  if (state.editingParticipantRow) {
+    data.rowIndex = state.editingParticipantRow;
+    res = await callApi('updateParticipant', { data, password: state.adminPw });
+  } else {
+    res = await callApi('addParticipant', { data, password: state.adminPw });
+  }
+
+  if (!res.success) {
+    showAlert('alert-participant', res.error || '저장 실패');
+    return;
+  }
+  closeParticipantModal();
+  loadAdminData();
+}
+
+async function confirmToggleActive(rowIndex) {
+  const r = state.adminContent.roster.find(x => x.rowIndex === rowIndex);
+  if (!r) return;
+  const action = r.active ? '비활성화' : '활성화';
+  if (!confirm(`${r.name}님을 ${action}하시겠습니까?`)) return;
+  const res = await callApi('toggleActive', { data: { rowIndex }, password: state.adminPw });
+  if (!res.success) {
+    alert(res.error || '실패');
+    return;
+  }
+  loadAdminData();
+}
+
+async function assignAllIds() {
+  if (!confirm('명단 시트에서 ID가 비어있는 행에 자동으로 ID를 부여합니다.\n계속하시겠습니까?')) return;
+  const res = await callApi('assignIds', { password: state.adminPw });
+  if (!res.success) {
+    alert(res.error || '실패');
+    return;
+  }
+  alert(`${res.assigned}명에게 ID가 부여되었습니다.`);
+  loadAdminData();
+}
+
+function exportRoster() {
+  const records = state.adminContent.roster;
+  if (records.length === 0) { alert('다운로드할 데이터가 없습니다.'); return; }
+  const headers = ['#', 'ID', '성명', '연락처', '소속', '이메일', '등록일', '활성여부', '출석일수', '비고'];
+  const rows = records.map((r, i) => [
+    i + 1, r.id, r.name, formatPhone(r.phone), r.affiliation, r.email,
+    r.registeredAt, r.active ? '활성' : '비활성', r.attendDays, r.note
+  ]);
+  downloadCSV(headers, rows, '명단');
+}
+
+function refreshAdmin() {
+  loadAdminData();
+  if (state.adminContent.cumulative !== null && document.getElementById('cumulative-accordion').classList.contains('open')) {
+    state.adminContent.cumulative = null;
+    loadCumulativeStats();
+  }
+}
+
+function toggleSound() {
+  state.soundEnabled = !state.soundEnabled;
+  document.getElementById('sound-toggle').textContent = state.soundEnabled ? '🔔' : '🔕';
+}
+
+
+// ==================== QR 카드 출력 (#print) ====================
+async function printLogin() {
+  clearAlert('alert-print-login');
+  const pw = document.getElementById('print-pw').value;
+  if (!pw) { showAlert('alert-print-login', '비밀번호를 입력해 주세요.'); return; }
+
+  state.adminPw = pw;
+  const res = await callApi('getRoster', { password: pw });
+  if (!res.success) {
+    showAlert('alert-print-login', res.error || '인증 실패');
+    return;
+  }
+  state.printRoster = res.roster || [];
+  document.getElementById('print-login').style.display = 'none';
+  document.getElementById('print-content').style.display = 'block';
+  renderPrintCards();
+}
+
+function renderPrintCards() {
+  const search = (document.getElementById('print-search').value || '').trim().toLowerCase();
+  let list = state.printRoster.filter(r => r.active);
+
+  if (search) {
+    list = list.filter(r =>
+      r.id.toLowerCase().includes(search) ||
+      r.name.toLowerCase().includes(search)
+    );
+  }
+
+  document.getElementById('print-info').textContent =
+    `${list.length}명 / A4 ${Math.ceil(list.length / 4)}장`;
+
+  const pages = document.getElementById('print-pages');
+  if (list.length === 0) {
+    pages.innerHTML = '<div class="chart-empty">출력할 명단이 없습니다.</div>';
+    return;
+  }
+
+  // 4명씩 페이지 분할
+  let html = '';
+  for (let i = 0; i < list.length; i += 4) {
+    const pageList = list.slice(i, i + 4);
+    html += '<div class="print-page">';
+    pageList.forEach(p => {
+      html += renderQrCard(p);
+    });
+    // 빈 슬롯 채우기 (4개 미만이어도 그리드 유지)
+    for (let j = pageList.length; j < 4; j++) {
+      html += '<div></div>';
+    }
+    html += '</div>';
+  }
+  pages.innerHTML = html;
+
+  // QR 코드 그리기 (qrcode-generator)
+  list.forEach(p => {
+    const slot = document.getElementById('qr-' + p.id);
+    if (slot && typeof qrcode !== 'undefined') {
+      try {
+        const qr = qrcode(0, 'M');
+        qr.addData(p.id);
+        qr.make();
+        slot.innerHTML = qr.createSvgTag({ scalable: true, margin: 0 });
+      } catch (e) {
+        slot.innerHTML = '<div style="font-size:9pt;color:#888;">QR 생성 오류</div>';
+      }
+    }
+  });
+}
+
+function renderQrCard(p) {
+  return `
+    <div class="qr-card">
+      <div class="qr-card-header">
+        <div class="qr-card-mark">GACHON UNIVERSITY</div>
+        <div class="qr-card-title">출입체크 카드</div>
+      </div>
+      <div class="qr-card-body">
+        <div class="qr-card-qr" id="qr-${escapeHtml(p.id)}"></div>
+        <div class="qr-card-id">${escapeHtml(p.id)}</div>
+      </div>
+      <div class="qr-card-info">
+        <div class="qr-card-name">${escapeHtml(p.name)}</div>
+        <div class="qr-card-affil">${escapeHtml(p.affiliation || '')}</div>
+        <div class="qr-card-period">${PROGRAM_PERIOD}</div>
+      </div>
+      <div class="qr-card-footer">
+        📱 카드를 휴대폰으로 촬영하여 보관해 주세요
+      </div>
+    </div>
+  `;
+}
+
+
+// ==================== 초기화 ====================
+checkMode();
+</script>
+
+</body>
+</html>
