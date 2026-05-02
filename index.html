@@ -1209,7 +1209,7 @@
           <div class="result-info-value" id="att-result-stay"></div>
         </div>
       </div>
-      <button class="btn ghost" onclick="attReset()">다시 시작</button>
+      <button class="btn ghost" id="att-reset-btn" onclick="attReset()">다시 시작</button>
     </div>
   </section>
 
@@ -1643,6 +1643,10 @@ let state = {
   scanner: null,
   scanResultTimer: null,
   scanCooldown: false,
+  scanProcessing: false,    // 비동기 처리 중 락 (true이면 다른 스캔 무시)
+  lastScanKey: '',          // 마지막으로 처리한 QR 값
+  lastScanAt: 0,            // 마지막 처리 완료 시각 (ms)
+  attResetTimer: null,      // 참석자 셀프 결과 화면 자동 복귀 타이머
   todayCount: 0,
   editingLogRow: null,
   editingParticipantRow: null,
@@ -1914,9 +1918,43 @@ function showAttResult(res) {
   document.getElementById('att-result-sub').textContent = res.affiliation || '';
   document.getElementById('att-result-time').textContent = formatTime(res.timestamp);
   window.scrollTo(0, 0);
+
+  // 8초 후 자동 복귀 + 1초마다 카운트다운 표시
+  startAttAutoReset(8);
+}
+
+function startAttAutoReset(seconds) {
+  // 기존 타이머 정리
+  if (state.attResetTimer) {
+    clearInterval(state.attResetTimer);
+    state.attResetTimer = null;
+  }
+
+  const btn = document.getElementById('att-reset-btn');
+  let remaining = seconds;
+  if (btn) btn.textContent = `다시 시작 (${remaining}초)`;
+
+  state.attResetTimer = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(state.attResetTimer);
+      state.attResetTimer = null;
+      attReset();
+    } else if (btn) {
+      btn.textContent = `다시 시작 (${remaining}초)`;
+    }
+  }, 1000);
 }
 
 function attReset() {
+  // 자동 복귀 타이머 정리
+  if (state.attResetTimer) {
+    clearInterval(state.attResetTimer);
+    state.attResetTimer = null;
+  }
+  const btn = document.getElementById('att-reset-btn');
+  if (btn) btn.textContent = '다시 시작';
+
   document.getElementById('step-att-phone').style.display = 'block';
   document.getElementById('step-att-result').style.display = 'none';
   document.getElementById('att-input-phone').value = '';
@@ -1947,10 +1985,9 @@ function startScanner() {
 
   state.scanner = new Html5Qrcode('qr-reader');
   const config = {
-    fps: 20,                                    // 초당 20 프레임 스캔 (10 → 20, 인식 속도 2배)
-    qrbox: { width: 320, height: 320 },         // 인식 영역 확장 (250 → 320, 멀리서도 잡힘)
-    aspectRatio: 1.0,
-    disableFlip: false                          // 좌우 반전된 QR도 인식
+    fps: 10,
+    qrbox: { width: 250, height: 250 },
+    aspectRatio: 1.0
   };
 
   state.scanner.start(
@@ -1965,11 +2002,21 @@ function startScanner() {
 }
 
 function onScanSuccess(decodedText) {
-  if (state.scanCooldown) return;  // 쿨다운 중
-  state.scanCooldown = true;
-  setTimeout(() => { state.scanCooldown = false; }, 2000);  // 2초 후 다음 인식 (서버 디바운스 30초가 별도로 보호)
+  // 1차 방어: 비동기 처리 중이면 무조건 차단 (race condition 방지)
+  if (state.scanProcessing) return;
+  // 2차 방어: 쿨다운 중이면 차단
+  if (state.scanCooldown) return;
+  // 3차 방어: 같은 QR이 직전 처리(완료) 후 5초 이내면 차단
+  const key = String(decodedText || '').trim();
+  if (key && key === state.lastScanKey && (Date.now() - state.lastScanAt) < 5000) {
+    return;
+  }
 
-  processScan(decodedText);
+  state.scanCooldown = true;
+  state.scanProcessing = true;
+  setTimeout(() => { state.scanCooldown = false; }, 3500);  // 3.5초 후 다음 인식
+
+  processScan(key);
 }
 
 function onScanFailure(err) {
@@ -1977,29 +2024,36 @@ function onScanFailure(err) {
 }
 
 async function processScan(key) {
-  // 1단계: lookup
-  const lookup = await callApi('lookup', { key: key });
-  if (!lookup.success) {
-    showScanResult({ success: false, error: lookup.error || '조회 실패', notFound: true });
-    return;
-  }
-  if (!lookup.found || lookup.matches.length === 0) {
-    showScanResult({ success: false, error: '명단에 없습니다', notFound: true });
-    return;
-  }
-  const target = lookup.matches[0];
-  if (!target.active) {
-    showScanResult({ success: false, error: '비활성 참가자입니다', inactive: true, name: target.name });
-    return;
-  }
+  try {
+    // 1단계: lookup
+    const lookup = await callApi('lookup', { key: key });
+    if (!lookup.success) {
+      showScanResult({ success: false, error: lookup.error || '조회 실패', notFound: true });
+      return;
+    }
+    if (!lookup.found || lookup.matches.length === 0) {
+      showScanResult({ success: false, error: '명단에 없습니다', notFound: true });
+      return;
+    }
+    const target = lookup.matches[0];
+    if (!target.active) {
+      showScanResult({ success: false, error: '비활성 참가자입니다', inactive: true, name: target.name });
+      return;
+    }
 
-  // 2단계: checkInOut
-  const res = await callApi('checkInOut', { data: { id: target.id, action: 'auto' } });
-  showScanResult(res);
+    // 2단계: checkInOut
+    const res = await callApi('checkInOut', { data: { id: target.id, action: 'auto' } });
+    showScanResult(res);
 
-  if (res.success) {
-    state.todayCount++;
-    document.getElementById('scan-today-count').textContent = state.todayCount;
+    if (res.success) {
+      state.todayCount++;
+      document.getElementById('scan-today-count').textContent = state.todayCount;
+    }
+  } finally {
+    // 처리 완료 후 마지막 키/시각 기록 + 락 해제
+    state.lastScanKey = key;
+    state.lastScanAt = Date.now();
+    state.scanProcessing = false;
   }
 }
 
