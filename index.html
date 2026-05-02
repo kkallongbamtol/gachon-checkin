@@ -1947,9 +1947,10 @@ function startScanner() {
 
   state.scanner = new Html5Qrcode('qr-reader');
   const config = {
-    fps: 10,
-    qrbox: { width: 250, height: 250 },
-    aspectRatio: 1.0
+    fps: 20,                                    // 초당 20 프레임 스캔 (10 → 20, 인식 속도 2배)
+    qrbox: { width: 320, height: 320 },         // 인식 영역 확장 (250 → 320, 멀리서도 잡힘)
+    aspectRatio: 1.0,
+    disableFlip: false                          // 좌우 반전된 QR도 인식
   };
 
   state.scanner.start(
@@ -1966,7 +1967,7 @@ function startScanner() {
 function onScanSuccess(decodedText) {
   if (state.scanCooldown) return;  // 쿨다운 중
   state.scanCooldown = true;
-  setTimeout(() => { state.scanCooldown = false; }, 3500);  // 3.5초 후 다음 인식
+  setTimeout(() => { state.scanCooldown = false; }, 2000);  // 2초 후 다음 인식 (서버 디바운스 30초가 별도로 보호)
 
   processScan(decodedText);
 }
