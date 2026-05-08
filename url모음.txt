@@ -1,0 +1,20 @@
+스프레드 확장 프로그램에서 비밀번호, 22시까지 체크아웃 없는 경우 부여시간 등 수정
+index.html 메모장으로 열고 
+const SCRIPT_URL
+찾아서 아래 url로 교체
+https://script.google.com/macros/s/AKfycbz9smMGtk-aIomrp3RGGIZ_JqCVOxAef_i4mFCYW51-3y-seeYxnaCKYBFyJUt4oDyqDA/exec
+
+출입 체크인-아웃 url
+https://kkallongbamtol.github.io/gachon-checkin/
+
+관리자-아이디 부여
+https://kkallongbamtol.github.io/gachon-checkin/#admin
+
+QR출력
+https://kkallongbamtol.github.io/gachon-checkin/#print
+
+QR스캔
+https://kkallongbamtol.github.io/gachon-checkin/#scan
+
+깃허브
+https://github.com/kkallongbamtol/gachon-checkin
